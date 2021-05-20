@@ -16,10 +16,20 @@ import { localize } from 'vs/nls';
 import { parseLogLevel } from 'vs/platform/log/common/log';
 import product from 'vs/platform/product/common/product';
 import { defaultWebSocketFactory } from 'vs/platform/remote/browser/browserSocketFactory';
-import { extractLocalHostUriMetaDataForPortMapping } from 'vs/platform/remote/common/tunnel';
+import { extractLocalHostUriMetaDataForPortMapping, isLocalhost } from 'vs/platform/remote/common/tunnel';
 import { ColorScheme } from 'vs/platform/theme/common/theme';
 import { isFolderToOpen, isWorkspaceToOpen } from 'vs/platform/windows/common/windows';
-import { commands, create, ICredentialsProvider, IHomeIndicator, IWorkspace, IWorkspaceProvider } from 'vs/workbench/workbench.web.api';
+import { commands, create, ICommand, ICredentialsProvider, IHomeIndicator, ITunnel, ITunnelProvider, IWorkspace, IWorkspaceProvider } from 'vs/workbench/workbench.web.api';
+import type * as port from '@gitpod/supervisor-api-grpcweb/lib/port_pb';
+import type * as localapp_types from '@gitpod/local-app-api-grpcweb/lib/localapp_pb';
+import * as localapp from '@gitpod/local-app-api-grpcweb';
+
+type TunnelStatus = localapp_types.TunnelStatus;
+const { LocalAppClient, TunnelStatusRequest, TunnelVisiblity } = localapp as any as {
+	LocalAppClient: typeof localapp.LocalAppClient,
+	TunnelStatusRequest: typeof localapp_types.TunnelStatusRequest,
+	TunnelVisiblity: typeof port.TunnelVisiblity
+};
 
 interface ICredential {
 	service: string;
@@ -401,6 +411,130 @@ async function doStart(): Promise<IDisposable> {
 		return Disposable.None;
 	}
 
+	class Tunnel implements ITunnel {
+		public?: boolean;
+		private readonly onDidDisposeEmitter = new Emitter<void>();
+		readonly onDidDispose = this.onDidDisposeEmitter.event;
+		private disposed = false;
+		constructor(
+			public remoteAddress: { port: number; host: string; },
+			public localAddress: string
+		) {
+			tunnels.get(remoteAddress.port)?.dispose(false);
+			tunnels.set(remoteAddress.port, this);
+		}
+		async dispose(close = true): Promise<void> {
+			if (this.disposed) {
+				return;
+			}
+			this.disposed = true;
+			tunnels.delete(this.remoteAddress.port);
+			if (close) {
+				try {
+					await commands.executeCommand('gitpod.closeTunnel', this.remoteAddress.port);
+				} catch (e) {
+					console.error('failed to close tunnel', e);
+				}
+			}
+			this.onDidDisposeEmitter.fire(undefined);
+			this.onDidDisposeEmitter.dispose();
+		}
+
+	}
+	const tunnels = new Map<number, Tunnel>();
+	const getTunnels: ICommand = {
+		id: 'gitpod.getTunnels',
+		handler: () => /* vscode.TunnelDescription[] */ {
+			const result: {
+				remoteAddress: { port: number, host: string; };
+				//The complete local address(ex. localhost:1234)
+				localAddress: { port: number, host: string; } | string;
+				public?: boolean;
+			}[] = [];
+			for (const tunnel of tunnels.values()) {
+				result.push({
+					remoteAddress: tunnel.remoteAddress,
+					localAddress: tunnel.localAddress,
+					public: tunnel.public
+				});
+			}
+			return result;
+		}
+	};
+	const disposeTunnelCommand: ICommand = {
+		id: 'gitpod.disposeClosedTunnels',
+		handler: (ports: number[]) => {
+			for (const port of ports) {
+				tunnels.get(port)?.dispose(false);
+			}
+		}
+	};
+	async function resolvedTunneledPort(port: number, attempts = 1): Promise<TunnelStatus> {
+		let cause: Error | undefined;
+		for (let i = 0; i < attempts; i++) {
+			try {
+				const tunnel = await new Promise<TunnelStatus>((resolve, reject) => {
+					// TODO(ak) settings for 5000
+					// TODO(ak) listen on demand
+					// TODO(ak) nesure ws transport
+					const client = new LocalAppClient('http://localhost:5000');
+					const request = new TunnelStatusRequest();
+					request.setObserve(true);
+					request.setWorkspaceId(info.instanceId);
+					const stream = client.tunnelStatus(new TunnelStatusRequest());
+					stream.on('data', response => {
+						for (const tunnel of response.getTunnelsList()) {
+							if (tunnel.getRemotePort() === port) {
+								resolve(tunnel);
+								stream.cancel();
+							}
+						}
+					});
+					stream.on('end', status => reject(new Error('unexpected end of stream: ' + status?.details)));
+				});
+				return tunnel;
+			} catch (e) {
+				await new Promise(resolve => setTimeout(resolve, 1000));
+				cause = e;
+			}
+		}
+		throw cause;
+	}
+	const tunnelProvider: ITunnelProvider = {
+		features: {
+			public: true,
+			elevation: false
+		},
+		tunnelFactory: async (tunnelOptions, tunnelCreationOptions) => {
+			try {
+				if (!isLocalhost(tunnelOptions.remoteAddress.host)) {
+					throw new Error('only tunneling of localhost is supported, but: ' + tunnelOptions.remoteAddress.host);
+				}
+				let data = await resolvedTunneledPort(tunnelOptions.remoteAddress.port).catch(() => undefined);
+				if (!data) {
+					await commands.executeCommand('gitpod.openTunnel', tunnelOptions, tunnelCreationOptions);
+				}
+				data = await resolvedTunneledPort(tunnelOptions.remoteAddress.port, 5);
+				const tunnel = new Tunnel(
+					tunnelOptions.remoteAddress,
+					'localhost:' + data.getLocalPort()
+				);
+				tunnel.public = data.getVisibility() === TunnelVisiblity.NETWORK;
+				return tunnel;
+			} catch (e) {
+				console.trace(`failed to tunnel to '${tunnelOptions.remoteAddress.host}':'${tunnelOptions.remoteAddress.port}': `, e);
+				const tunnel = new Tunnel(
+					tunnelOptions.remoteAddress,
+					// actually should be external URL and this method should never throw
+					'localhost:' + tunnelOptions.remoteAddress.port
+				);
+				// closed tunnel, invalidate in next tick
+				setTimeout(() => tunnel.dispose(false));
+				return tunnel;
+			}
+		}
+	};
+
 	return create(document.body, {
 		remoteAuthority,
 		webviewEndpoint: webviewEndpoint.toString(),
@@ -418,8 +552,13 @@ async function doStart(): Promise<IDisposable> {
 			if (!localhost) {
 				return uri;
 			}
-			const publicUrl = (await commands.executeCommand('gitpod.resolveExternalPort', localhost.port)) as any as string;
-			return URI.parse(publicUrl);
+			try {
+				const data = await resolvedTunneledPort(localhost.port);
+				return URI.parse('http://localhost:' + data.getLocalPort());
+			} catch {
+				const publicUrl = (await commands.executeCommand('gitpod.resolveExternalPort', localhost.port)) as any as string;
+				return URI.parse(publicUrl);
+			}
 		},
 		homeIndicator,
 		windowIndicator: {
@@ -490,7 +629,12 @@ async function doStart(): Promise<IDisposable> {
 				// TODO
 			}
 		},
-		webWorkerExtensionHostIframeSrc: webWorkerExtensionHostEndpoint.toString()
+		webWorkerExtensionHostIframeSrc: webWorkerExtensionHostEndpoint.toString(),
+		tunnelProvider,
+		commands: [
+			getTunnels,
+			disposeTunnelCommand
+		]
 	});
 }
 

@@ -179,9 +179,9 @@
     global-tunnel-ng "^2.7.1"
 
 "@gitpod/gitpod-protocol@main":
-  version "0.1.5-main.822"
-  resolved "https://registry.yarnpkg.com/@gitpod/gitpod-protocol/-/gitpod-protocol-0.1.5-main.822.tgz#03052002ac8e5938461786cfed84dc5edf491663"
-  integrity sha512-u946qZEwZRqKbCC0XAtkapotlXRYGCu3LYuW4H8ajTD5YG3P7enWD7havka5VE4EdNMEV2gIL4LP9jjQMztc1w==
+  version "0.1.5-main.828"
+  resolved "https://registry.yarnpkg.com/@gitpod/gitpod-protocol/-/gitpod-protocol-0.1.5-main.828.tgz#e0add6fcb3985127badc7abca1a4ee797265455e"
+  integrity sha512-I4Q3cgXNsOrLHkU+n9qDAASfEP+qXiLzlES/lJdAEXSJaXmzHa3+Noyw6ridXgzrA76wOB59cMBvBNSQKSV6Hg==
   dependencies:
     ajv "^6.5.4"
     analytics-node "^4.0.1"
@@ -198,15 +198,36 @@
     vscode-ws-jsonrpc "^0.2.0"
     ws "^5.2.2"
 
+"@gitpod/local-app-api-grpcweb@0.1.5-ak-vscode-tunnel-provider.17":
+  version "0.1.5-ak-vscode-tunnel-provider.17"
+  resolved "https://registry.yarnpkg.com/@gitpod/local-app-api-grpcweb/-/local-app-api-grpcweb-0.1.5-ak-vscode-tunnel-provider.17.tgz#9a35eb96bfb3f6922bf6a64a02b84ef6582f2350"
+  integrity sha512-UFSZ/j0jRAvS7zqZq/4VUFWSTdyphUSAIllBeIMpxnHJoRf5I4PmuJ12QBIRrhlxLdb2cqr5W0TmGqF0+5oe2A==
+  dependencies:
+    "@gitpod/supervisor-api-grpcweb" "0.1.5-ak-vscode-tunnel-provider.15"
+    "@improbable-eng/grpc-web" "0.14.0"
+    google-protobuf "^3.17.0"
+
 "@gitpod/supervisor-api-grpc@main":
-  version "0.1.5-main.822"
-  resolved "https://registry.yarnpkg.com/@gitpod/supervisor-api-grpc/-/supervisor-api-grpc-0.1.5-main.822.tgz#8e0b8d3506c813a2cac89d3e2e9440dbd54a35e6"
-  integrity sha512-Yb1mw+Ba6EdU8TisH1NPc9DXNP+YKfVawn5r8lnIOP/ygRmcaaeJpJUGHppHtKVo5yw8jKfd2utabh2urahvTg==
+  version "0.1.5-main.836"
+  resolved "https://registry.yarnpkg.com/@gitpod/supervisor-api-grpc/-/supervisor-api-grpc-0.1.5-main.836.tgz#d346716136bf02a948eacbe2482dcfa0d4941b4f"
+  integrity sha512-kcJJzMsalQDjLTa6cKKejYeGRArqSaYFcyeGjO2BRn4+/iML9kTnP076BbjPtk5vFuVtLgetY8iFpn6kzuwNng==
   dependencies:
     "@grpc/grpc-js" "^1.1.5"
     google-protobuf "^3.15.8"
 
-"@grpc/grpc-js@^1.1.5", "@grpc/grpc-js@latest":
+"@gitpod/supervisor-api-grpcweb@0.1.5-ak-vscode-tunnel-provider.15":
+  version "0.1.5-ak-vscode-tunnel-provider.15"
+  resolved "https://registry.yarnpkg.com/@gitpod/supervisor-api-grpcweb/-/supervisor-api-grpcweb-0.1.5-ak-vscode-tunnel-provider.15.tgz#244083ad2f5dc62522e64ab511b09650dd7a2f7a"
+  integrity sha512-kwzgMQWi2kIiDBNa7Q7ORCsXDR7Gb0iZBMiKoweT7fnFmrPAhWqpNdsf6Amzp1paYz/e648Vs88aTcNMsGDLcw==
+
+"@grpc/grpc-js@^1.1.5":
+  version "1.3.2"
+  resolved "https://registry.yarnpkg.com/@grpc/grpc-js/-/grpc-js-1.3.2.tgz#eae97e6daf5abd49a7818aadeca0744dfb1ebca1"
+  integrity sha512-UXepkOKCATJrhHGsxt+CGfpZy9zUn1q9mop5kfcXq1fBkTePxVNPOdnISlCbJFlCtld+pSLGyZCzr9/zVprFKA==
+  dependencies:
+    "@types/node" ">=12.12.47"
+
+"@grpc/grpc-js@latest":
   version "1.2.12"
   resolved "https://registry.yarnpkg.com/@grpc/grpc-js/-/grpc-js-1.2.12.tgz#0153f27512acf69184bb52c0a1035ca91d6c14b0"
   integrity sha512-+gPCklP1eqIgrNPyzddYQdt9+GvZqPlLpIjIo+TveE+gbtp74VV1A2ju8ExeO8ma8f7MbpaGZx/KJPYVWL9eDw==
@@ -233,6 +254,13 @@
   dependencies:
     normalize-path "^2.0.1"
     through2 "^2.0.3"
+
+"@improbable-eng/grpc-web@0.14.0":
+  version "0.14.0"
+  resolved "https://registry.yarnpkg.com/@improbable-eng/grpc-web/-/grpc-web-0.14.0.tgz#a71c5af471dcef6a2810798f71f93ed8d6ac3817"
+  integrity sha512-ag1PTMWpBZKGi6GrEcZ4lkU5Qag23Xjo10BmnK9qyx4TMmSVcWmQ3rECirfQzm2uogrM9n1M6xfOpFsJP62ivA==
+  dependencies:
+    browser-headers "^0.4.1"
 
 "@istanbuljs/schema@^0.1.2":
   version "0.1.2"
@@ -1662,6 +1690,11 @@ brorand@^1.0.1, brorand@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/brorand/-/brorand-1.1.0.tgz#12c25efe40a45e3c323eb8675a0a0ce57b22371f"
   integrity sha1-EsJe/kCkXjwyPrhnWgoM5XsiNx8=
+
+browser-headers@^0.4.1:
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/browser-headers/-/browser-headers-0.4.1.tgz#4308a7ad3b240f4203dbb45acedb38dc2d65dd02"
+  integrity sha512-CA9hsySZVo9371qEHjHZtYxV2cFtVj5Wj/ZHi8ooEsrtm4vOnl9Y9HmyYWk9q+05d7K3rdoAE0j3MVEFVvtQtg==
 
 "browser-request@>= 0.3.1 < 0.4.0":
   version "0.3.3"
@@ -4542,10 +4575,10 @@ google-p12-pem@^3.0.3:
   dependencies:
     node-forge "^0.10.0"
 
-google-protobuf@^3.15.8:
-  version "3.15.8"
-  resolved "https://registry.yarnpkg.com/google-protobuf/-/google-protobuf-3.15.8.tgz#5f3948905e4951c867d6bc143f385a80e2a39efe"
-  integrity sha512-2jtfdqTaSxk0cuBJBtTTWsot4WtR9RVr2rXg7x7OoqiuOKopPrwXpM1G4dXIkLcUNRh3RKzz76C8IOkksZSeOw==
+google-protobuf@^3.15.8, google-protobuf@^3.17.0:
+  version "3.17.0"
+  resolved "https://registry.yarnpkg.com/google-protobuf/-/google-protobuf-3.17.0.tgz#5623215f9d0345649720ae5e5e9713491e2456fc"
+  integrity sha512-xuxzzx6FXmkmddRZci2SmGeZcx+vykmqG60yJf/Rz+NEKaUs+nLhaiUQAWa7Z00a7bHfRjRxSIX9FcELaxWIVA==
 
 got@^9.6.0:
   version "9.6.0"

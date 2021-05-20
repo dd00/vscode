@@ -762,7 +762,10 @@
 					"**/vs/platform/**/{common,browser}/**",
 					"**/vs/code/**/{common,browser}/**",
 					"**/vs/workbench/workbench.web.api",
-					"@gitpod/gitpod-protocol/lib/**"
+					"@gitpod/gitpod-protocol/lib/**",
+					"@gitpod/local-app-api-grpcweb",
+					"@gitpod/supervisor-api-grpcweb/lib/**",
+					"@gitpod/local-app-api-grpcweb/lib/**"
 				]
 			},
 			{

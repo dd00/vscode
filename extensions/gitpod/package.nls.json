@@ -17,5 +17,7 @@
 	"openPreview": "Open Preview",
 	"makePrivate": "Make Private",
 	"makePublic": "Make Public",
+	"tunnelNetwork": "Tunnel on all interfaces",
+	"tunnelHost": "Tunnel on localhost",
 	"addToConfig": "Add to .gitpod.yml"
 }
