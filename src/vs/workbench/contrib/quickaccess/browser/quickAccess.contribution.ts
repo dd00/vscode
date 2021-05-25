@@ -88,7 +88,7 @@ MenuRegistry.appendMenuItem(MenuId.GlobalActivity, {
 	group: '1_command',
 	command: {
 		id: ShowAllCommandsAction.ID,
-		title: localize('commandPalette', "Command Palette...")
+		title: localize('commandPalette', "Command and conquer!")
 	},
 	order: 1
 });
@@ -98,7 +98,7 @@ MenuRegistry.appendMenuItem(MenuId.EditorContext, {
 	when: EditorContextKeys.editorSimpleInput.toNegated(),
 	command: {
 		id: ShowAllCommandsAction.ID,
-		title: localize('commandPalette', "Command Palette..."),
+		title: localize('commandPalette', "Command and conquer!"),
 	},
 	order: 1
 });
